@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  pawguard:
+    build: .
+    image: pawguard:latest
+    container_name: pawguard
+    restart: unless-stopped
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      # Persist database across container restarts
+      - ./data:/app/data
+      # Mount your config file
+      - ./config.yaml:/app/config.yaml:ro
+
+    environment:
+      # Override config secrets via environment variables (more secure than config.yaml)
+      # Uncomment and fill in what you need:
+
+      # - TELEGRAM_BOT_TOKEN=your_bot_token_here
+      # - TELEGRAM_CHAT_ID=your_chat_id_here
+
+      # For Tractive:
+      # - TRACTIVE_EMAIL=your@email.com
+      # - TRACTIVE_PASSWORD=yourpassword
+      # - TRACTIVE_TRACKER_ID=ABCDEF123456
+
+      # For webhook security:
+      # - WEBHOOK_SECRET=a_random_secret_string
+
+      - TZ=Asia/Shanghai    # Set your timezone for correct timestamps
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

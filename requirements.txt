@@ -1,0 +1,18 @@
+# Web framework
+fastapi==0.110.0
+uvicorn[standard]==0.27.1
+
+# HTTP client (Tractive API + Telegram)
+requests==2.31.0
+
+# MQTT (for DIY hardware)
+paho-mqtt==1.6.1
+
+# Config
+PyYAML==6.0.1
+
+# Data validation
+pydantic==2.6.3
+
+# Python type hints (3.9 compat)
+typing-extensions==4.10.0

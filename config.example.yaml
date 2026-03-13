@@ -1,0 +1,81 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# PawGuard Configuration
+# Copy this file to config.yaml and fill in your details.
+# Secrets can also be set via environment variables (see comments).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Your pet(s). Multiple pets are supported.
+pets:
+  - id: "cat_01"          # Internal ID, used in API and logs. No spaces.
+    name: "小橘"           # Display name, shown in alerts
+    species: "cat"
+
+# Your home location. The center of the safe zone.
+# Find your coordinates: https://www.latlong.net/
+home:
+  lat: 39.9042
+  lon: 116.4074
+  radius_meters: 150      # Area within this radius is considered "home"
+
+# ── Tracker ──────────────────────────────────────────────────────────────────
+tracker:
+  # Choose ONE of: "tractive" | "mqtt" | "webhook"
+  type: "webhook"
+
+  # Option A: Tractive GPS collar
+  # Uses the unofficial Tractive API (same one used by the Home Assistant integration)
+  # Free plan: GPS updates every 2-3 min. Premium: every 2-3 sec (Live Tracking)
+  tractive:
+    email: "your@email.com"           # Or set env: TRACTIVE_EMAIL
+    password: "yourpassword"          # Or set env: TRACTIVE_PASSWORD
+    tracker_id: "ABCDEF123456"        # Found in Tractive app → Tracker Settings
+    poll_interval_seconds: 60
+
+  # Option B: DIY hardware via MQTT (ESP32, Arduino + SIM7000, etc.)
+  # Publish JSON to the configured topic. See connectors/mqtt_connector.py for payload format.
+  mqtt:
+    host: "localhost"
+    port: 1883
+    topic: "pawguard/location"
+    username: null                    # Set if your broker requires auth
+    password: null
+
+  # Option C: HTTP webhook
+  # PawGuard exposes POST /webhook/location/{pet_id}
+  # Works with IFTTT, Zapier, OwnTracks, GPSLogger (Android), and more.
+  webhook:
+    secret: null                      # Or set env: WEBHOOK_SECRET (recommended)
+
+# ── Alert channels ────────────────────────────────────────────────────────────
+alerts:
+  # Telegram Bot (recommended — free, instant, no message limits)
+  # Create a bot: https://t.me/BotFather
+  # Get your chat_id: https://t.me/userinfobot
+  telegram:
+    enabled: true
+    bot_token: "1234567890:AAAA-xxxxxxxxxxxxx"   # Or set env: TELEGRAM_BOT_TOKEN
+    chat_id: "123456789"                          # Or set env: TELEGRAM_CHAT_ID
+
+  # Suppress re-alerts at the same level within this window
+  dedup_minutes: 15
+
+# ── Detection thresholds ──────────────────────────────────────────────────────
+thresholds:
+  # Stillness alerts (only trigger in UNFAMILIAR locations)
+  stillness_warning_minutes: 20    # 🟠 WARNING after this many motionless minutes
+  stillness_critical_minutes: 45   # 🔴 CRITICAL after this many motionless minutes
+
+  # Geofence
+  geofence_radius_meters: 300      # 🔵 NOTICE if pet goes beyond this distance from home
+
+  # Familiarity detection
+  familiar_zone_radius_meters: 30  # A location is "familiar" if pet has been within this range before
+  min_behavior_data_days: 3        # Days of data needed before familiarity detection activates
+
+  # Battery
+  low_battery_warning_pct: 20      # Alert when battery drops below this
+
+# ── System ───────────────────────────────────────────────────────────────────
+api_port: 8000
+log_level: "INFO"
+data_dir: "./data"                 # SQLite database and logs stored here

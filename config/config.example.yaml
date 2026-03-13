@@ -1,0 +1,88 @@
+# ============================================================
+# PawGuard 配置文件
+# 复制此文件为 config.yaml 并填入你的信息
+# ============================================================
+
+# 宠物信息（支持多只）
+pets:
+  - id: "cat_1"
+    name: "小橘"
+    species: "cat"   # cat / dog
+    weight_kg: 4.5
+    tracker:
+      type: "tractive"          # tractive / mqtt / airtag_ble
+      tractive_email: "your@email.com"
+      tractive_password: "yourpassword"
+      # tractive_device_id 留空则自动获取第一个设备
+      tractive_device_id: ""
+
+  # 第二只宠物示例（MQTT通用设备，比如自制ESP32追踪器）
+  # - id: "cat_2"
+  #   name: "花花"
+  #   species: "cat"
+  #   tracker:
+  #     type: "mqtt"
+  #     mqtt_topic: "pets/huahua/location"
+
+# 家的位置（用于地理围栏）
+home:
+  lat: 39.9042
+  lon: 116.4074
+  radius_meters: 150       # 超出此半径触发围栏告警
+  safe_zones:              # 额外的安全区域（如猫咪常去的邻居院子）
+    - name: "邻居张阿姨家"
+      lat: 39.9051
+      lon: 116.4080
+      radius_meters: 50
+
+# 告警规则
+alerts:
+  # 离家多远开始关注
+  notice_distance_meters: 300
+  # 在陌生区域静止多久触发警告 (分钟)
+  stillness_warning_minutes: 20
+  # 在陌生区域静止多久触发紧急告警 (分钟)
+  stillness_critical_minutes: 45
+  # 每天深夜不在家触发提醒的时间
+  night_check_hour: 23
+  # 电池低电量告警阈值 (%)
+  battery_low_pct: 20
+  # 告警冷却时间，避免重复通知 (分钟)
+  cooldown_minutes: 30
+
+# 通知渠道（至少配置一个）
+notifications:
+  telegram:
+    enabled: true
+    bot_token: "your_telegram_bot_token"
+    chat_id: "your_telegram_chat_id"
+
+  # 邮件通知（可选）
+  email:
+    enabled: false
+    smtp_host: "smtp.gmail.com"
+    smtp_port: 587
+    username: "your@gmail.com"
+    password: "your_app_password"
+    to: "your@gmail.com"
+
+# MQTT Broker 配置（仅当有宠物使用mqtt类型追踪器时需要填写）
+mqtt:
+  host: "localhost"
+  port: 1883
+  username: ""
+  password: ""
+
+# 数据存储
+storage:
+  db_path: "/data/pawguard.db"
+  # 保留历史数据天数
+  retention_days: 90
+
+# 系统设置
+system:
+  # 数据采集间隔（秒），最终实际频率由PowerScheduler动态决定
+  poll_interval_seconds: 60
+  # 行为模型所需最少历史天数
+  behavior_model_min_days: 7
+  log_level: "INFO"   # DEBUG / INFO / WARNING

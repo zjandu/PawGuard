@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PawGuard 🐾</title>
+<style>
+  :root {
+    --bg: #0f1117; --card: #1a1d27; --border: #2a2d3a;
+    --green: #22c55e; --blue: #3b82f6; --orange: #f97316;
+    --red: #ef4444; --text: #e2e8f0; --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; padding: 20px; }
+  h1 { font-size: 1.5rem; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .card h2 { font-size: 1rem; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .status-badge {
+    display: inline-block; padding: 4px 12px; border-radius: 999px;
+    font-size: 0.8rem; font-weight: 600; margin-bottom: 12px;
+  }
+  .SAFE { background: #14532d; color: var(--green); }
+  .NOTICE { background: #1e3a5f; color: var(--blue); }
+  .WARNING { background: #431407; color: var(--orange); }
+  .CRITICAL { background: #450a0a; color: var(--red); border: 1px solid var(--red); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+  .stat { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  .stat:last-child { border-bottom: none; }
+  .stat .label { color: var(--muted); }
+  .stat .value { font-weight: 500; }
+  .alert-item { padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; }
+  .alert-item .time { color: var(--muted); font-size: 0.75rem; margin-bottom: 4px; }
+  .map-link { color: var(--blue); text-decoration: none; font-size: 0.8rem; }
+  .map-link:hover { text-decoration: underline; }
+  .loading { color: var(--muted); text-align: center; padding: 40px; }
+  .error { color: var(--red); padding: 12px; background: #450a0a; border-radius: 8px; margin: 16px 0; }
+  .pet-name { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
+  .refresh-btn {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; float: right;
+  }
+  .refresh-btn:hover { background: var(--border); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .dot.green { background: var(--green); }
+  .dot.orange { background: var(--orange); }
+  .dot.red { background: var(--red); animation: pulse 1s infinite; }
+  #last-updated { color: var(--muted); font-size: 0.75rem; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom: 4px;">
+  <h1>🐾 PawGuard</h1>
+  <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+</div>
+<div class="subtitle">Real-time pet safety monitoring</div>
+<div id="last-updated"></div>
+
+<div id="root">
+  <div class="loading">Loading pet data...</div>
+</div>
+
+<script>
+const API = '';  // Same origin
+
+async function loadAll() {
+  try {
+    const pets = await fetch(`${API}/api/pets`).then(r => r.json());
+    renderPets(pets);
+    document.getElementById('last-updated').textContent =
+      'Last updated: ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    document.getElementById('root').innerHTML =
+      `<div class="error">⚠ Could not connect to PawGuard API. Is the server running?<br><small>${e}</small></div>`;
+  }
+}
+
+function levelDot(level) {
+  const map = { SAFE: 'green', NOTICE: 'green', WARNING: 'orange', CRITICAL: 'red' };
+  return `<span class="dot ${map[level] || 'green'}"></span>`;
+}
+
+function timeAgo(isoStr) {
+  if (!isoStr) return 'Never';
+  const secs = Math.floor((Date.now() - new Date(isoStr + 'Z')) / 1000);
+  if (secs < 60) return `${secs}s ago`;
+  if (secs < 3600) return `${Math.floor(secs/60)}min ago`;
+  return `${Math.floor(secs/3600)}h ago`;
+}
+
+function mapLink(lat, lon) {
+  if (!lat || !lon) return '';
+  return `<a class="map-link" href="https://www.google.com/maps?q=${lat},${lon}" target="_blank">📍 Open Map</a>`;
+}
+
+function renderPets(pets) {
+  if (!pets.length) {
+    document.getElementById('root').innerHTML = '<div class="loading">No pets configured yet.</div>';
+    return;
+  }
+
+  let html = '<div class="grid">';
+
+  for (const pet of pets) {
+    const loc = pet.last_location;
+    const alert = pet.last_alert;
+    const level = alert ? alert.level : 'SAFE';
+
+    html += `
+    <div class="card">
+      <div class="pet-name">${pet.name}</div>
+      <span class="status-badge ${level}">${levelDot(level)} ${level}</span>
+
+      <h2>Last Location</h2>
+      <div class="stat"><span class="label">Coordinates</span>
+        <span class="value">${loc ? `${loc.lat.toFixed(5)}, ${loc.lon.toFixed(5)}` : 'No data'}</span>
+      </div>
+      <div class="stat"><span class="label">GPS Fix Age</span>
+        <span class="value">${loc ? timeAgo(loc.timestamp) : '—'}</span>
+      </div>
+      <div class="stat"><span class="label">Source</span>
+        <span class="value">${loc ? loc.source : '—'}</span>
+      </div>
+      <div class="stat"><span class="label">Battery</span>
+        <span class="value">${loc && loc.battery_pct != null ? loc.battery_pct + '%' : '—'}</span>
+      </div>
+      <div class="stat"><span class="label">Accuracy</span>
+        <span class="value">${loc ? '±' + loc.accuracy_meters.toFixed(0) + 'm' : '—'}</span>
+      </div>
+      <div style="margin-top:8px">${loc ? mapLink(loc.lat, loc.lon) : ''}</div>
+    </div>
+
+    <div class="card">
+      <h2>Status</h2>
+      <div class="stat"><span class="label">Behavior model</span>
+        <span class="value">${pet.behavior_model_active ? '✅ Active' : `⏳ Learning (${pet.data_days_collected}d)`}</span>
+      </div>
+      <div class="stat"><span class="label">Data collected</span>
+        <span class="value">${pet.data_days_collected} days</span>
+      </div>
+
+      <h2 style="margin-top:16px">Last Alert</h2>
+      ${alert ? `
+        <div class="alert-item ${alert.level}" style="background:${alertBg(alert.level)}; border-radius:8px; padding:10px; margin-bottom:8px;">
+          <div class="time">${timeAgo(alert.timestamp)}</div>
+          <div>${alert.message.split('\n')[0]}</div>
+        </div>
+      ` : '<div style="color:var(--muted); font-size:0.9rem; padding:8px 0">No alerts yet 🎉</div>'}
+    </div>`;
+  }
+
+  html += '</div>';
+  document.getElementById('root').innerHTML = html;
+}
+
+function alertBg(level) {
+  return { SAFE: '#14532d22', NOTICE: '#1e3a5f44', WARNING: '#43140722', CRITICAL: '#450a0a44' }[level] || '';
+}
+
+// Auto-refresh every 30 seconds
+loadAll();
+setInterval(loadAll, 30000);
+</script>
+</body>
+</html>
