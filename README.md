@@ -1,14 +1,13 @@
 # 🐾 PawGuard
 
-> A blogger I followed had a cat she loved dearly. One day the cat wandered off
-> while playing outside. Her GPS tracker couldn't update fast enough.
-> By the time she found her, it was too late.
+> A blogger I followed had a cat he loved dearly. One day the cat wandered off
+> while playing outside. His GPS tracker couldn't update fast enough.
+> By the time he found her, it was too late.
 >
-> She and thousands of her followers were devastated. I was too.
+> He and thousands of his followers were devastated. I was too.
 >
 > This happens more than it should. PawGuard is my attempt to make it
 > happen less — even if just a little.
-
 
 **AI-powered pet safety monitoring. Turns any GPS tracker into a proactive guardian.**
 
