@@ -2,7 +2,7 @@
 
 > A blogger I followed had a cat he loved dearly. One day the cat wandered off
 > while playing outside. His GPS tracker couldn't update fast enough.
-> By the time he found her, it was too late.
+> By the time he found him, it was too late.
 >
 > He and thousands of his followers were devastated. I was too.
 >
